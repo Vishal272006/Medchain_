@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MedChain - Hospital Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800&amp;family=Manrope:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#0a0f14",
+                        "primary-container": "#2ba281",
+                        "primary": "#6cdab6",
+                        "surface-container-highest": "#30353b",
+                        "on-secondary": "#00373a",
+                        "on-background": "#dee3ea",
+                        "on-secondary-container": "#006a6f",
+                        "surface-tint": "#6cdab6",
+                        "inverse-surface": "#dee3ea",
+                        "outline-variant": "#3d4944",
+                        "outline": "#87948d",
+                        "surface": "#0f1419",
+                        "surface-container-low": "#171c21",
+                        "tertiary-container": "#5f8bff",
+                        "background": "#0f1419",
+                        "tertiary-fixed-dim": "#b3c5ff",
+                        "on-primary-fixed-variant": "#00513e",
+                        "on-primary-fixed": "#002117",
+                        "secondary": "#dcfdff",
+                        "surface-bright": "#353a3f",
+                        "tertiary-fixed": "#dbe1ff",
+                        "secondary-container": "#00f1fd",
+                        "secondary-fixed-dim": "#00dce6",
+                        "error-container": "#93000a",
+                        "on-primary-container": "#003024",
+                        "on-tertiary-fixed-variant": "#003ea6",
+                        "inverse-primary": "#006c53",
+                        "on-surface-variant": "#bccac2",
+                        "surface-container": "#1b2025",
+                        "on-surface": "#dee3ea",
+                        "tertiary": "#b3c5ff",
+                        "on-secondary-fixed": "#002022",
+                        "on-tertiary-container": "#002468",
+                        "inverse-on-surface": "#2c3137",
+                        "secondary-fixed": "#6ff6ff",
+                        "primary-fixed": "#89f7d1",
+                        "surface-container-high": "#252a30",
+                        "on-tertiary": "#002a76",
+                        "on-secondary-fixed-variant": "#004f53",
+                        "surface-dim": "#0f1419",
+                        "primary-fixed-dim": "#6cdab6",
+                        "on-tertiary-fixed": "#00174a",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#30353b",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#00382a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "1rem",
+                        "xl": "4rem",
+                        "lg": "2.5rem",
+                        "md": "1.5rem",
+                        "unit": "4px",
+                        "xs": "0.5rem",
+                        "margin": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Epilogue"],
+                        "label-md": ["Manrope"],
+                        "display-2xl": ["Epilogue"],
+                        "body-lg": ["Manrope"],
+                        "headline-lg": ["Epilogue"],
+                        "body-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-2xl": ["72px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-layer {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .floor-texture {
+            background-image: radial-gradient(circle at 50% 50%, rgba(108, 218, 182, 0.05) 0%, transparent 60%);
+        }
+        .card-tilt:hover {
+            transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) scale3d(1.01, 1.01, 1.01);
+            box-shadow: 0 20px 40px -10px rgba(108, 218, 182, 0.15);
+        }
+    </style>
+    <link href="style.css" rel="stylesheet"/>
+</head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen font-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+    <!-- Interactive Background Grid -->
+    <canvas id="gridCanvas" class="fixed inset-0 z-0 pointer-events-none"></canvas>
+
+<!-- TopNavBar -->
+<nav class="hidden md:flex flex justify-between items-center w-full px-8 py-4 max-w-full z-50 bg-white/10 dark:bg-slate-900/40 backdrop-blur-xl font-epilogue tracking-tight docked full-width top-0 sticky border-b border-white/10 shadow-[0_8px_32px_0_rgba(13,147,115,0.15)] glass-layer">
+<div class="flex items-center gap-8">
+<a href="index.html" class="text-2xl font-black tracking-tighter text-teal-600 dark:text-teal-400 hover:opacity-80 transition-opacity">MedChain</a>
+<div class="flex items-center bg-surface-container rounded-full px-4 py-2 border border-outline-variant">
+<span class="material-symbols-outlined text-outline mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-on-surface placeholder-outline-variant text-sm w-48" placeholder="Search inventory..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<a class="text-teal-500 dark:text-teal-300 border-b-2 border-teal-500 pb-1 hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Inventory</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Orders</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Analytics</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Compliance</a>
+</div><button onclick="window.location.href='list-medicine.html'" class="ml-4 px-6 py-2 bg-gradient-to-r from-primary to-secondary-container text-on-primary-container font-semibold rounded-full flex items-center gap-2 hover:shadow-[0_0_20px_rgba(108,218,182,0.4)] transition-all duration-300 scale-100 active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="add_circle">add_circle</span>
+<span class="font-label-md">List Medicine</span>
+</button>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+    <span class="text-[10px] uppercase tracking-widest text-outline">Current Role</span>
+    <span class="text-xs font-bold text-primary">Hospital / Pharmacy</span>
+</div>
+
+<!-- Role Switcher -->
+<div class="role-switcher relative">
+    <button id="roleSwitcherBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-all text-xs font-semibold">
+        <span class="material-symbols-outlined text-[16px]">sync_alt</span>
+        Switch
+    </button>
+    <div id="roleMenu" class="role-menu hidden absolute right-0 mt-2 w-52 bg-surface-container border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl z-[60] overflow-hidden">
+        <a href="admin.html" class="role-menu-item">
+            <span class="material-symbols-outlined text-[18px] text-tertiary">admin_panel_settings</span>
+            Admin Portal
+        </a>
+        <a href="hospital.html" class="role-menu-item bg-white/5 pointer-events-none">
+            <span class="material-symbols-outlined text-[18px] text-primary">local_hospital</span>
+            Hospital Dashboard (Current)
+        </a>
+        <a href="find-medicines.html" class="role-menu-item">
+            <span class="material-symbols-outlined text-[18px] text-secondary-container">medical_services</span>
+            Clinic Portal
+        </a>
+        <div class="role-menu-divider"></div>
+        <a href="role_selector.html" class="role-menu-item italic text-[11px] opacity-70">
+            <span class="material-symbols-outlined text-[16px]">logout</span>
+            Exit to Selector
+        </a>
+    </div>
+</div>
+
+<button class="text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<img alt="User profile" class="w-8 h-8 rounded-full border border-primary/30 object-cover" data-alt="A close up portrait of a medical professional wearing a white coat, subtle lighting, modern hospital setting, high-end tech aesthetic, calm and authoritative mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1WdF62QewSr0yXODHplwWmG9VNbXI0XxTrHkLZ4NmVryz8T0Bh5y1IBrnEP-51lX62-9r2qBltfhG5xLViHeA5qYL1yv--Bvda3ro4lI4jDURNWihMiMljodTw4udzqzNP0oJytSjCR8yVhBsTetHWLQTaBwo2SZwKO2oZ_gyc48hHV0dNOYDl38CS9l1YqXz2DDN_0YgAj1lSKkU1Qh13-8OLAK3jWHstuEZyc_9AwHYHjW169xWKMoSsOFe0txxBd_7wBeVMXg"/>
+</div>
+</div>
+</nav>
+<script src="app.js"></script>
+<!-- SideNavBar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-surface-container-highest border-t border-white/10 z-50 glass-layer px-4 py-3 flex justify-around">
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view" data-weight="fill" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="text-xs mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center text-outline hover:text-primary" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="text-xs mt-1">Network</span>
+</a>
+<a class="flex flex-col items-center text-outline hover:text-primary" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="text-xs mt-1">Ledger</span>
+</a>
+</nav>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 pb-32">
+<!-- Hero Section -->
+<header class="mb-16 relative">
+
+<div class="flex items-center gap-3 mb-4">
+<div class="flex items-center gap-2 px-3 py-1 bg-secondary-container/10 border border-secondary/20 rounded-full">
+<div class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></div>
+<span class="font-label-md text-label-md text-secondary-container">Live Sync</span>
+</div>
+<span class="font-label-md text-label-md text-outline">Block #892.11a</span>
+</div>
+<h1 class="font-display-2xl text-display-2xl text-on-surface mb-4">
+                Surplus <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary-container">Impact</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                Real-time tracking of medical supply re-allocation across the network. Optimizing resource distribution through immutable ledger technology.
+            </p>
+</header>
+<!-- Asymmetric Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 mb-16">
+<!-- Main Focal Area -->
+<div class="md:col-span-8 bg-surface-container border border-white/10 rounded-2xl p-8 relative overflow-hidden card-tilt transition-all duration-300">
+<div class="absolute top-0 right-0 p-6 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-9xl text-primary" data-icon="health_and_safety">health_and_safety</span>
+</div>
+<div class="relative z-10 flex flex-col justify-between h-full min-h-[300px]">
+<div>
+<h2 class="font-label-md text-label-md text-outline uppercase tracking-wider mb-2">Total Value Recovered</h2>
+<div class="font-headline-xl text-headline-xl text-on-surface flex items-baseline gap-2"><span id="stat-units">—</span> <span class="font-body-md text-body-md text-primary" id="stat-units-label">units total</span></div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-8">
+<div class="bg-surface-container-low border border-white/5 rounded-xl p-4">
+<span class="font-label-md text-label-md text-outline block mb-1">Carbon Offset</span>
+<span class="font-headline-lg text-headline-lg text-secondary-container">840t</span>
+</div>
+<div class="bg-surface-container-low border border-white/5 rounded-xl p-4">
+<span class="font-label-md text-label-md text-outline block mb-1">Items Redirected</span>
+<span class="font-headline-lg text-headline-lg text-primary">145k</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Stats Stack -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<!-- Available Listings -->
+<div class="bg-surface-container border border-white/10 rounded-2xl p-6 card-tilt transition-all duration-300 flex-1 flex flex-col justify-center">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-label-md text-label-md text-outline">Available Listings</h3>
+<span class="material-symbols-outlined text-primary" data-icon="inventory_2">inventory_2</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-on-surface mb-2" id="stat-available">—</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 mb-2">
+<div class="bg-primary h-1.5 rounded-full" id="avail-bar" style="width: 0%"></div>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant text-xs">High demand capacity</span>
+</div>
+<!-- Matched Batches -->
+<div class="bg-surface-container border border-white/10 rounded-2xl p-6 card-tilt transition-all duration-300 flex-1 flex flex-col justify-center">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-label-md text-label-md text-outline">Matched Batches</h3>
+<span class="material-symbols-outlined text-secondary-container" data-icon="handshake">handshake</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-on-surface"><span id="stat-matched">—</span> <span class="font-body-md text-body-md text-outline font-normal">matched</span></div>
+</div>
+</div>
+</div>
+<!-- Recent Activity Table Panel -->
+<section class="bg-surface-container border border-white/10 rounded-2xl overflow-hidden card-tilt transition-all duration-300">
+<div class="p-6 border-b border-white/5 flex justify-between items-center bg-surface-container-low">
+<h2 class="font-headline-lg text-headline-lg text-on-surface text-xl">Recent Activity</h2>
+<button class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors flex items-center gap-1">
+                    View All Ledger <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-highest/50 font-label-md text-label-md text-outline">
+<th class="p-4 font-semibold w-1/4">Transaction ID</th>
+<th class="p-4 font-semibold">Item</th>
+<th class="p-4 font-semibold">Qty</th>
+<th class="p-4 font-semibold">Status</th>
+<th class="p-4 font-semibold text-right">Time</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface-variant" id="activity-tbody"><tr><td colspan="5" class="p-8 text-center text-outline">Loading...</td></tr></tbody>
+</table>
+</div>
+</section>
+</main>
+<script>
+(function() {
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    const DOT_SPACING = 32;
+    let gridDots = [];
+    let mouse = { x: -1000, y: -1000 };
+
+    function initGrid() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        gridDots = [];
+        for (let x = 0; x < W; x += DOT_SPACING) {
+            for (let y = 0; y < H; y += DOT_SPACING) {
+                gridDots.push({ x, y });
+            }
+        }
+    }
+
+    window.addEventListener('resize', initGrid);
+    window.addEventListener('mousemove', e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
+
+    function drawGrid() {
+        ctx.clearRect(0, 0, W, H);
+        const glowRadius = 220;
+        gridDots.forEach(d => {
+            const dx = mouse.x - d.x;
+            const dy = mouse.y - d.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            let alpha = 0.08, scale = 1;
+            if (dist < glowRadius) {
+                const factor = 1 - dist / glowRadius;
+                alpha = 0.08 + (factor * 0.6);
+                scale = 1 + (factor * 0.8);
+            }
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            if (dist < glowRadius * 0.6) {
+                ctx.shadowColor = '#89f7d1';
+                ctx.shadowBlur = (1 - dist / (glowRadius * 0.6)) * 4;
+            }
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, 0.8 * scale, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.restore();
+        });
+        requestAnimationFrame(drawGrid);
+    }
+    initGrid();
+    drawGrid();
+})();
+</script>
+
+
+<script>
+const API = "http://localhost:8000";
+
+function statusBadge(matched) {
+  return matched
+    ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/20 text-xs font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Matched</span>`
+    : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-container/20 text-primary border border-primary/20 text-xs font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Available</span>`;
+}
+
+function expiryTag(exp) {
+  if (!exp) return "—";
+  const [y,m] = exp.split("-").map(Number);
+  const now = new Date();
+  const months = (y - now.getFullYear())*12 + (m - (now.getMonth()+1));
+  if (months < 0)  return `<span class="text-red-400 text-xs font-bold">Expired</span>`;
+  if (months <= 1) return `<span class="text-yellow-400 text-xs font-bold">⚠ ${exp}</span>`;
+  return `<span class="text-outline text-xs">${exp}</span>`;
+}
+
+async function loadDashboard() {
+  try {
+    const surplus = await fetch(API + "/surplus/all").then(r => r.json());
+    const available = surplus.filter(s => !s.matched).length;
+    const matched   = surplus.filter(s =>  s.matched).length;
+    const units     = surplus.reduce((a,s) => a + s.quantity, 0);
+
+    document.getElementById("stat-available").textContent = available;
+    document.getElementById("stat-matched").textContent   = matched;
+    document.getElementById("stat-units").textContent     = units.toLocaleString();
+    const pct = surplus.length ? Math.round((available/surplus.length)*100) : 0;
+    document.getElementById("avail-bar").style.width = pct + "%";
+
+    const tbody = document.getElementById("activity-tbody");
+    if (!surplus.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-outline">
+        <p class="text-2xl mb-2">📦</p>
+        <p>No surplus listed yet — <a href="list-medicine.html" class="text-primary underline">list your first medicine</a></p>
+      </td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = surplus.slice(-8).reverse().map(s => `
+      <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group cursor-pointer">
+        <td class="p-4 font-mono text-xs text-primary">${s.surplus_id}</td>
+        <td class="p-4 text-on-surface font-medium">${s.drug_name}</td>
+        <td class="p-4">${s.quantity}</td>
+        <td class="p-4">${statusBadge(s.matched)}</td>
+        <td class="p-4 text-right">${expiryTag(s.expiry_date)}</td>
+      </tr>`).join("");
+  } catch {
+    document.getElementById("activity-tbody").innerHTML = `<tr><td colspan="5" class="p-8 text-center">
+      <p class="text-red-400 font-semibold">Backend offline</p>
+      <p class="text-outline text-sm mt-1">Run: <code class="bg-surface-container px-2 py-1 rounded">uvicorn main:app --port 8000</code></p>
+    </td></tr>`;
+  }
+}
+
+loadDashboard();
+setInterval(loadDashboard, 30000);
+</script>
+
+</body></html>

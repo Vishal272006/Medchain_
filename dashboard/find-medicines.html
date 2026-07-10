@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MedChain - Find Medicines</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#0a0f14",
+                        "primary-container": "#2ba281",
+                        "primary": "#6cdab6",
+                        "surface-container-highest": "#30353b",
+                        "on-secondary": "#00373a",
+                        "on-background": "#dee3ea",
+                        "on-secondary-container": "#006a6f",
+                        "surface-tint": "#6cdab6",
+                        "inverse-surface": "#dee3ea",
+                        "outline-variant": "#3d4944",
+                        "outline": "#87948d",
+                        "surface": "#0f1419",
+                        "surface-container-low": "#171c21",
+                        "tertiary-container": "#5f8bff",
+                        "background": "#0f1419",
+                        "tertiary-fixed-dim": "#b3c5ff",
+                        "on-primary-fixed-variant": "#00513e",
+                        "on-primary-fixed": "#002117",
+                        "secondary": "#dcfdff",
+                        "surface-bright": "#353a3f",
+                        "tertiary-fixed": "#dbe1ff",
+                        "secondary-container": "#00f1fd",
+                        "secondary-fixed-dim": "#00dce6",
+                        "error-container": "#93000a",
+                        "on-primary-container": "#003024",
+                        "on-tertiary-fixed-variant": "#003ea6",
+                        "inverse-primary": "#006c53",
+                        "on-surface-variant": "#bccac2",
+                        "surface-container": "#1b2025",
+                        "on-surface": "#dee3ea",
+                        "tertiary": "#b3c5ff",
+                        "on-secondary-fixed": "#002022",
+                        "on-tertiary-container": "#002468",
+                        "inverse-on-surface": "#2c3137",
+                        "secondary-fixed": "#6ff6ff",
+                        "primary-fixed": "#89f7d1",
+                        "surface-container-high": "#252a30",
+                        "on-tertiary": "#002a76",
+                        "on-secondary-fixed-variant": "#004f53",
+                        "surface-dim": "#0f1419",
+                        "primary-fixed-dim": "#6cdab6",
+                        "on-tertiary-fixed": "#00174a",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#30353b",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#00382a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "1rem",
+                        "xl": "4rem",
+                        "lg": "2.5rem",
+                        "md": "1.5rem",
+                        "unit": "4px",
+                        "xs": "0.5rem",
+                        "margin": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Epilogue"],
+                        "label-md": ["Manrope"],
+                        "display-2xl": ["Epilogue"],
+                        "body-lg": ["Manrope"],
+                        "headline-lg": ["Epilogue"],
+                        "body-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-2xl": ["72px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: #1b2025;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .crisp-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .brand-flow {
+            background: linear-gradient(135deg, #2ba281 0%, #6cdab6 100%);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #6cdab6 0%, #dcfdff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .ambient-shadow {
+            box-shadow: 0 8px 32px 0 rgba(13, 147, 115, 0.15);
+        }
+        .glow-focus:focus-within {
+            box-shadow: 0 0 20px rgba(108, 218, 182, 0.3);
+            border-color: rgba(108, 218, 182, 0.5);
+        }
+    </style>
+    <link href="style.css" rel="stylesheet"/>
+</head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen font-body-md relative overflow-x-hidden">
+    <!-- Interactive Background Grid -->
+    <canvas id="gridCanvas" class="fixed inset-0 z-0 pointer-events-none"></canvas>
+
+
+<!-- TopNavBar -->
+<nav class="bg-white/10 dark:bg-slate-900/40 backdrop-blur-xl docked full-width top-0 sticky border-b border-white/10 shadow-[0_8px_32px_0_rgba(13,147,115,0.15)] flex justify-between items-center w-full px-8 py-4 max-w-full z-50">
+<div class="flex items-center gap-xl">
+<a href="index.html" class="text-2xl font-black tracking-tighter text-teal-600 dark:text-teal-400 font-epilogue tracking-tight hover:opacity-80 transition-opacity">MedChain</a>
+<div class="hidden md:flex gap-md">
+<!-- Active Navigation: Defaulting to Inventory based on "Find Medicines" intent -->
+<a class="text-teal-500 dark:text-teal-300 border-b-2 border-teal-500 pb-1 font-epilogue tracking-tight hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Inventory</a>
+<a class="text-slate-500 dark:text-slate-400 font-epilogue tracking-tight hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Orders</a>
+<a class="text-slate-500 dark:text-slate-400 font-epilogue tracking-tight hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Analytics</a>
+<a class="text-slate-500 dark:text-slate-400 font-epilogue tracking-tight hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Compliance</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex flex-col items-end mr-2">
+    <span class="text-[10px] uppercase tracking-widest text-outline">Current Role</span>
+    <span class="text-xs font-bold text-secondary-container">Clinic / PHC</span>
+</div>
+
+<!-- Role Switcher -->
+<div class="role-switcher relative">
+    <button id="roleSwitcherBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary-container/10 border border-secondary-container/30 text-secondary-container hover:bg-secondary-container/20 transition-all text-xs font-semibold">
+        <span class="material-symbols-outlined text-[16px]">sync_alt</span>
+        Switch
+    </button>
+    <div id="roleMenu" class="role-menu hidden absolute right-0 mt-2 w-52 bg-surface-container border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl z-[60] overflow-hidden">
+        <a href="admin.html" class="role-menu-item">
+            <span class="material-symbols-outlined text-[18px] text-tertiary">admin_panel_settings</span>
+            Admin Portal
+        </a>
+        <a href="hospital.html" class="role-menu-item">
+            <span class="material-symbols-outlined text-[18px] text-primary">local_hospital</span>
+            Hospital Dashboard
+        </a>
+        <a href="find-medicines.html" class="role-menu-item bg-white/5 pointer-events-none">
+            <span class="material-symbols-outlined text-[18px] text-secondary-container">medical_services</span>
+            Clinic Portal (Current)
+        </a>
+        <div class="role-menu-divider"></div>
+        <a href="role_selector.html" class="role-menu-item italic text-[11px] opacity-70">
+            <span class="material-symbols-outlined text-[16px]">logout</span>
+            Exit to Selector
+        </a>
+    </div>
+</div>
+
+<button class="text-slate-500 dark:text-slate-400 hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-slate-500 dark:text-slate-400 hover:text-teal-400 transition-colors duration-300 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="User profile" class="w-10 h-10 rounded-full crisp-border object-cover ml-xs" data-alt="A macro, high-contrast digital illustration of a glowing, abstract neural network node, representing a high-tech medical user avatar. The node emits a cool cyan and teal glow against a deep black void. Complex, ethereal pathways of light connect to the central core, evoking themes of precision, connectivity, and futuristic blockchain technology within a sophisticated dark-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZIZaAiH0qspKCwAjQu67-QJVqs8XIaIoUKaklsyEHuNbVA517ghXT9aX6iaXEvgOs7GxqYdYD1dsPCD7kkKf_EOyTRoJMcLPQQQ9QOcr3WohpCFEgAqqIbqhJGdolKXXLmImNAR0lGzJkO-Nj6eR2Un0CKBSZsph3Bp0nxG8tDWjx7yPLkAAQFuYoDwVKZQ-aEpEzVt3C-iO98nCFv3qsIBaIKvCkWoed_RuSM1yN_bqqRpnxGQQjGObyBP1b8oq_amSct_53Xvg"/>
+</div>
+</nav>
+<script src="app.js"></script>
+<!-- Main Content Canvas -->
+<main class="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-8 py-xl flex flex-col gap-xl">
+<!-- Hero Search Section -->
+<section class="flex flex-col items-center text-center gap-lg mt-xl mb-lg">
+<h1 class="font-display-2xl text-display-2xl text-on-surface">
+                Locate <span class="text-gradient">Critical Supply</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                Access the decentralized global ledger to find verified medical inventory with real-time availability and chain-of-custody tracking.
+            </p>
+<div class="w-full max-w-3xl mt-md glass-panel rounded-full p-2 flex items-center gap-sm crisp-border glow-focus transition-all duration-300 ambient-shadow">
+<span class="material-symbols-outlined text-primary ml-sm text-2xl">search</span>
+<input class="w-full bg-transparent border-none text-on-surface font-body-lg focus:ring-0 placeholder:text-outline p-2 h-12" placeholder="Search by Drug Name e.g. Metformin, Amoxicillin..." type="text" id="search-input" onkeydown="if(event.key==='Enter')doSearch()"/>
+<button class="brand-flow text-on-primary rounded-full px-lg py-sm font-label-md text-label-md shadow-lg shadow-teal-900/30 hover:scale-105 transition-transform flex items-center gap-xs" onclick="doSearch()">
+<span>Search Network</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</section>
+<!-- Content Grid (Asymmetric Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- Left Side Filtering Panel (Asymmetrical Accent) -->
+<aside class="lg:col-span-3 glass-panel rounded-xl p-md crisp-border ambient-shadow sticky top-32 flex flex-col gap-md">
+<div class="flex items-center justify-between pb-sm border-b border-white/10">
+<h3 class="font-headline-lg text-lg font-bold text-on-surface">Filters</h3>
+<button class="text-primary text-sm hover:underline font-label-md">Reset</button>
+</div>
+<!-- Filter Category 1 -->
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Availability</h4>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="form-checkbox rounded bg-surface border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">In Stock Near Me</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input checked="" class="form-checkbox rounded bg-surface border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Global Network</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="form-checkbox rounded bg-surface border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Emergency Supply</span>
+</label>
+</div>
+<!-- Filter Category 2 -->
+<div class="flex flex-col gap-sm mt-sm">
+<h4 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Verification Level</h4>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="form-radio bg-surface border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface" name="verification" type="radio"/>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Any Validated</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input checked="" class="form-radio bg-surface border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface" name="verification" type="radio"/>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Tier 1 Partners</span>
+</label>
+</div>
+<!-- Radius Slider (Abstracted) -->
+<div class="flex flex-col gap-sm mt-sm">
+<div class="flex justify-between items-center">
+<h4 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Logistics Radius</h4>
+<span class="text-primary font-label-md text-xs">500 Miles</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden mt-1">
+<div class="h-full bg-primary w-1/2"></div>
+</div>
+</div>
+</aside>
+<!-- Right Side Results (High-End Horizontal Cards) -->
+<div class="lg:col-span-9 flex flex-col gap-md">
+<div class="flex justify-between items-end mb-sm">
+<h2 class="font-headline-lg text-2xl font-bold text-on-surface">Available Inventory</h2>
+<span class="font-label-md text-on-surface-variant text-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm text-secondary-container animate-pulse" style="font-variation-settings: 'FILL' 1;">fiber_manual_record</span>
+                        Live Ledger Sync
+                    </span>
+</div>
+<!-- Result Card 1 -->
+<div class="glass-panel rounded-xl p-md crisp-border ambient-shadow group hover:shadow-[0_12px_40px_0_rgba(13,147,115,0.25)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col md:flex-row gap-md items-center">
+<div class="absolute top-0 left-0 w-1 h-full brand-flow"></div>
+<div class="flex-grow flex flex-col gap-xs w-full">
+<div class="flex items-center gap-sm mb-1">
+<span class="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-label-md uppercase tracking-wider crisp-border">Verified</span>
+<span class="text-outline font-label-md text-xs">NDC: 00000-0000-00</span>
+</div>
+<h3 class="font-headline-xl text-3xl font-bold text-on-surface group-hover:text-gradient transition-colors">Epinephrine Auto-Injector</h3>
+<p class="font-body-md text-on-surface-variant">0.3 mg/0.3 mL, 2-Pack</p>
+</div>
+<div class="flex flex-row md:flex-col gap-md items-center md:items-end w-full md:w-auto shrink-0 border-t border-white/10 md:border-t-0 md:border-l pt-md md:pt-0 pl-0 md:pl-md">
+<div class="flex flex-col items-start md:items-end">
+<span class="font-label-md text-on-surface-variant text-xs uppercase">Est. Delivery</span>
+<span class="font-headline-lg text-lg text-primary">24 Hours</span>
+</div>
+<div class="flex flex-col items-start md:items-end">
+<span class="font-label-md text-on-surface-variant text-xs uppercase">Available Qty</span>
+<span class="font-headline-lg text-lg text-on-surface">1,250 Units</span>
+</div>
+<button class="ml-auto md:ml-0 mt-2 bg-transparent border border-primary text-primary hover:bg-primary/10 rounded-lg px-md py-sm font-label-md text-label-md transition-colors flex items-center gap-xs">
+                            Request Block
+                            <span class="material-symbols-outlined text-sm">arrow_outward</span>
+</button>
+</div>
+</div>
+<!-- Result Card 2 -->
+<div class="glass-panel rounded-xl p-md crisp-border ambient-shadow group hover:shadow-[0_12px_40px_0_rgba(13,147,115,0.25)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col md:flex-row gap-md items-center">
+<div class="flex-grow flex flex-col gap-xs w-full">
+<div class="flex items-center gap-sm mb-1">
+<span class="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-label-md uppercase tracking-wider crisp-border">Verified</span>
+<span class="text-outline font-label-md text-xs">NDC: 11111-2222-33</span>
+</div>
+<h3 class="font-headline-xl text-3xl font-bold text-on-surface group-hover:text-gradient transition-colors">Albuterol Sulfate Inhalation Aerosol</h3>
+<p class="font-body-md text-on-surface-variant">90 mcg/actuation, 200 Metered Inhalations</p>
+</div>
+<div class="flex flex-row md:flex-col gap-md items-center md:items-end w-full md:w-auto shrink-0 border-t border-white/10 md:border-t-0 md:border-l pt-md md:pt-0 pl-0 md:pl-md">
+<div class="flex flex-col items-start md:items-end">
+<span class="font-label-md text-on-surface-variant text-xs uppercase">Est. Delivery</span>
+<span class="font-headline-lg text-lg text-primary">48 Hours</span>
+</div>
+<div class="flex flex-col items-start md:items-end">
+<span class="font-label-md text-on-surface-variant text-xs uppercase">Available Qty</span>
+<span class="font-headline-lg text-lg text-on-surface">8,400 Units</span>
+</div>
+<button class="ml-auto md:ml-0 mt-2 bg-transparent border border-primary text-primary hover:bg-primary/10 rounded-lg px-md py-sm font-label-md text-label-md transition-colors flex items-center gap-xs">
+                            Request Block
+                            <span class="material-symbols-outlined text-sm">arrow_outward</span>
+</button>
+</div>
+</div>
+<!-- Result Card 3 (Lower Availability State) -->
+<div class="glass-panel rounded-xl p-md crisp-border ambient-shadow group hover:shadow-[0_12px_40px_0_rgba(13,147,115,0.25)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col md:flex-row gap-md items-center opacity-80">
+<div class="flex-grow flex flex-col gap-xs w-full">
+<div class="flex items-center gap-sm mb-1">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-1 rounded text-xs font-label-md uppercase tracking-wider crisp-border">Pending Validation</span>
+<span class="text-outline font-label-md text-xs">NDC: 55555-4444-11</span>
+</div>
+<h3 class="font-headline-xl text-3xl font-bold text-on-surface group-hover:text-gradient transition-colors">Naloxone Hydrochloride Injection</h3>
+<p class="font-body-md text-on-surface-variant">0.4 mg/mL, 1 mL Vial</p>
+</div>
+<div class="flex flex-row md:flex-col gap-md items-center md:items-end w-full md:w-auto shrink-0 border-t border-white/10 md:border-t-0 md:border-l pt-md md:pt-0 pl-0 md:pl-md">
+<div class="flex flex-col items-start md:items-end">
+<span class="font-label-md text-on-surface-variant text-xs uppercase">Est. Delivery</span>
+<span class="font-headline-lg text-lg text-tertiary-fixed-dim">TBD</span>
+</div>
+<div class="flex flex-col items-start md:items-end">
+<span class="font-label-md text-on-surface-variant text-xs uppercase">Available Qty</span>
+<span class="font-headline-lg text-lg text-error">Low Stock</span>
+</div>
+<button class="ml-auto md:ml-0 mt-2 bg-surface-variant text-on-surface-variant cursor-not-allowed rounded-lg px-md py-sm font-label-md text-label-md flex items-center gap-xs">
+                            Join Waitlist
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+(function() {
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    const DOT_SPACING = 32;
+    let gridDots = [];
+    let mouse = { x: -1000, y: -1000 };
+
+    function initGrid() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        gridDots = [];
+        for (let x = 0; x < W; x += DOT_SPACING) {
+            for (let y = 0; y < H; y += DOT_SPACING) {
+                gridDots.push({ x, y });
+            }
+        }
+    }
+
+    window.addEventListener('resize', initGrid);
+    window.addEventListener('mousemove', e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
+
+    function drawGrid() {
+        ctx.clearRect(0, 0, W, H);
+        const glowRadius = 220;
+        gridDots.forEach(d => {
+            const dx = mouse.x - d.x;
+            const dy = mouse.y - d.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            let alpha = 0.08, scale = 1;
+            if (dist < glowRadius) {
+                const factor = 1 - dist / glowRadius;
+                alpha = 0.08 + (factor * 0.6);
+                scale = 1 + (factor * 0.8);
+            }
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            if (dist < glowRadius * 0.6) {
+                ctx.shadowColor = '#89f7d1';
+                ctx.shadowBlur = (1 - dist / (glowRadius * 0.6)) * 4;
+            }
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, 0.8 * scale, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.restore();
+        });
+        requestAnimationFrame(drawGrid);
+    }
+    initGrid();
+    drawGrid();
+})();
+</script>
+
+
+<script>
+const API = "http://localhost:8000";
+let allSurplus = [];
+
+async function loadSurplus() {
+  try {
+    allSurplus = await fetch(API + "/surplus/all").then(r => r.json());
+    renderResults(allSurplus.filter(s => !s.matched));
+  } catch {
+    const cont = document.getElementById("results-container");
+    if (cont) cont.innerHTML = `<div style="padding:24px;text-align:center;color:#87948d">
+      <p style="color:#ffb4ab;font-weight:600">Backend offline</p>
+      <p style="font-size:13px;margin-top:4px">Run: uvicorn main:app --port 8000</p>
+    </div>`;
+  }
+}
+
+function doSearch() {
+  const q = (document.getElementById("search-input")?.value || "").trim().toLowerCase();
+  const filtered = q
+    ? allSurplus.filter(s => !s.matched && s.drug_name.toLowerCase().includes(q))
+    : allSurplus.filter(s => !s.matched);
+  renderResults(filtered, q);
+}
+
+function renderResults(items, query = "") {
+  let cont = document.getElementById("results-container");
+  if (!cont) {
+    cont = document.createElement("div");
+    cont.id = "results-container";
+    cont.style.cssText = "max-width:900px;margin:32px auto;padding:0 24px;";
+    const main = document.querySelector("main") || document.body;
+    main.appendChild(cont);
+  }
+
+  if (!items.length) {
+    cont.innerHTML = `<div style="text-align:center;padding:48px;color:#87948d">
+      <div style="font-size:40px;margin-bottom:12px">🔍</div>
+      <p style="font-size:18px;font-weight:600;color:#dee3ea;margin-bottom:6px">${query ? `No results for "${query}"` : "No medicines available"}</p>
+      <p style="font-size:14px">${query ? "Try a different drug name" : "Hospitals haven't listed any surplus yet"}</p>
+    </div>`;
+    return;
+  }
+
+  cont.innerHTML = `
+    <p style="font-size:13px;color:#87948d;margin-bottom:16px;letter-spacing:0.05em;text-transform:uppercase">
+      ${items.length} medicine${items.length !== 1 ? "s" : ""} available${query ? ` for "${query}"` : ""}
+    </p>
+    ${items.map(s => `
+      <div style="background:#1b2025;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px 24px;margin-bottom:12px;display:flex;align-items:center;gap:16px;transition:all 0.2s"
+           onmouseover="this.style.borderColor='rgba(108,218,182,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+        <div style="width:44px;height:44px;border-radius:50%;background:rgba(108,218,182,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">💊</div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;color:#dee3ea;margin-bottom:3px">${s.drug_name}</div>
+          <div style="font-size:12px;color:#87948d">🏥 ${s.sender_id} &nbsp;·&nbsp; 📍 ${s.location_pincode || "N/A"} &nbsp;·&nbsp; Expires: ${s.expiry_date} &nbsp;·&nbsp; ${s.storage_type === "COLD" ? "❄️ Cold chain" : "🌡️ Ambient"}</div>
+        </div>
+        <div style="font-size:20px;font-weight:700;color:#6cdab6;margin-right:16px">${s.quantity} units</div>
+        <span style="background:rgba(108,218,182,0.1);color:#6cdab6;border:1px solid rgba(108,218,182,0.3);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-right:12px">Available</span>
+        <button onclick="requestMed('${s.drug_name}','${s.surplus_id}')"
+          style="padding:9px 20px;background:linear-gradient(135deg,#2ba281,#6cdab6);color:#00382a;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s"
+          onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+          Request →
+        </button>
+      </div>`).join("")}`;
+}
+
+async function requestMed(drugName, surplusId) {
+  const clinicId = prompt(`Request "${drugName}"\n\nEnter your Clinic/PHC ID:`);
+  if (!clinicId) return;
+  const qty = prompt("How many units do you need?");
+  if (!qty || isNaN(parseInt(qty))) return;
+  const pin = prompt("Your pincode:");
+  if (!pin) return;
+
+  try {
+    const res = await fetch(API + "/clinic/request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        receiver_id: clinicId.trim(),
+        drug_name: drugName,
+        quantity_needed: parseInt(qty),
+        location_pincode: pin.trim()
+      })
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    alert(`✓ Request submitted!\nRequest ID: ${data.request_id}\n\nThe admin will match and dispatch the medicines.`);
+  } catch {
+    alert("✕ Request failed — is the backend running?");
+  }
+}
+
+loadSurplus();
+</script>
+
+</body></html>

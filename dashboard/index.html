@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MedChain – The Decentralized Healthcare Network</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    background: #0a0f14;
+    font-family: 'Epilogue', sans-serif;
+    color: #dee3ea;
+  }
+  
+  /* Fixed background for canvas */
+  #canvas-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(0.4px) contrast(1.1); /* Subtle sharpening/contrast */
+  }
+  canvas { 
+    display: block; 
+    width: 100%; height: 100%; 
+    filter: drop-shadow(0 0 8px rgba(108, 218, 182, 0.15)); /* Global bloom */
+  }
+
+  /* Scrollable area */
+  #scroll-area {
+    position: relative;
+    height: 400vh; /* Adjust for scroll length */
+    z-index: 10;
+  }
+
+  /* Overlay UI */
+  .intro-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 90%;
+    max-width: 800px;
+    z-index: 20;
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+  }
+  h1 {
+    font-size: clamp(2rem, 8vw, 4.5rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #6cdab6 0%, #dcfdff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  p {
+    font-size: 1.25rem;
+    color: #bccac2;
+    line-height: 1.6;
+  }
+
+  #enter-btn {
+    position: fixed;
+    bottom: 15vh;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #2ba281 0%, #6cdab6 100%);
+    color: #00382a;
+    padding: 18px 48px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-decoration: none;
+    z-index: 30;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(108, 218, 182, 0.3);
+  }
+  #enter-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+  #enter-btn:hover {
+    transform: translateX(-50%) translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(108, 218, 182, 0.5);
+  }
+
+  .scroll-indicator {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateX(-50%) translateY(0);}
+    40% {transform: translateX(-50%) translateY(-10px);}
+    60% {transform: translateX(-50%) translateY(-5px);}
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<div id="canvas-container">
+  <canvas id="c"></canvas>
+</div>
+
+<div class="intro-text" id="t1">
+  <h1>MedChain</h1>
+  <p>The Future of Pharmaceutical Redistribution</p>
+</div>
+
+<div class="intro-text" id="t2" style="opacity: 0;">
+  <h1>Secure. Direct. Transparent.</h1>
+  <p>Connecting Hospitals, Clinics, and Care Centers.</p>
+</div>
+
+<div class="intro-text" id="t3" style="opacity: 0;">
+  <h1>Precision Logistics</h1>
+  <p>The global infrastructure for decentralized healthcare redistribution.</p>
+</div>
+
+<div id="scroll-area"></div>
+
+<div class="scroll-indicator" id="scroll-hint">Scroll to explore</div>
+
+<a href="role_selector.html" id="enter-btn">Enter MedChain</a>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const t1 = document.getElementById('t1');
+const t2 = document.getElementById('t2');
+const enterBtn = document.getElementById('enter-btn');
+const scrollHint = document.getElementById('scroll-hint');
+
+let W, H, dpr;
+const spriteCanvas = document.createElement('canvas');
+const sCtx = spriteCanvas.getContext('2d');
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+  preRenderSprites(); // Re-render sprites on resize
+}
+
+function preRenderSprites() {
+  // Pre-rendering 5 variations of the sphere for Depth-of-Field simulation
+  spriteCanvas.width = 100 * dpr;
+  spriteCanvas.height = 500 * dpr;
+  sCtx.scale(dpr, dpr);
+  
+  for (let i = 0; i < 5; i++) {
+    const r = 10;
+    const x = 50, y = 50 + i * 100;
+    const blur = i * 2;
+    
+    sCtx.save();
+    if (blur > 0) sCtx.filter = `blur(${blur}px)`;
+    
+    const grad = sCtx.createRadialGradient(x - 3, y - 3, 1, x, y, r);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.3, '#89f7d1');
+    grad.addColorStop(1, '#1a3a32');
+    
+    sCtx.beginPath();
+    sCtx.arc(x, y, r, 0, Math.PI * 2);
+    sCtx.fillStyle = grad;
+    sCtx.fill();
+    sCtx.restore();
+  }
+}
+
+resize();
+window.addEventListener('resize', resize);
+
+// ── Easing ───────────────────────────────────────────────
+const easeOut  = t => 1 - Math.pow(1 - t, 3);
+const easeInOut= t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+const clamp    = (v,lo,hi) => Math.max(lo, Math.min(hi, v));
+const map      = (v,a,b,c,d) => c + (d-c)*clamp((v-a)/(b-a),0,1);
+const lerp     = (a,b,t) => a + (b-a)*t;
+
+// ── Nodes & Grid Logic ───────────────────────────────────
+const TOTAL_DURATION = 14; // Slightly slower for smoothness
+const NODE_COUNT = 85; 
+let nodes = [];
+let edges = [];
+let gridDots = [];
+let mouse = { x: -1000, y: -1000 };
+
+function initNodes() {
+  nodes = [];
+  const cols = 10, rows = 8;
+  const spacingX = W / (cols - 1);
+  const spacingY = H / (rows - 1);
+  
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      // Organized Grid with subtle jitter
+      const ox = i * spacingX + (Math.random() - 0.5) * spacingX * 0.4;
+      const oy = j * spacingY + (Math.random() - 0.5) * spacingY * 0.4;
+      const z = Math.random(); 
+      nodes.push({
+        ox, oy, x: ox, y: oy,
+        hx: ox, hy: oy, // No convergence, stay organized
+        gridX: i, gridY: j,
+        z: z,
+        r:  4 + (1-z) * 6, // Larger spheres like the reference
+        baseAlpha: 0.6 + (1-z) * 0.4,
+        phX: Math.random() * Math.PI * 2,
+        phY: Math.random() * Math.PI * 2,
+        spd: 0.08 + Math.random() * 0.1,
+        amp: 8 + Math.random() * 12,
+        vx: 0, vy: 0 
+      });
+    }
+  }
+}
+
+function buildEdges() {
+  const list = [];
+  // Connect only to grid neighbors for "organized" look
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const n1 = nodes[i], n2 = nodes[j];
+      const dx = Math.abs(n1.gridX - n2.gridX);
+      const dy = Math.abs(n1.gridY - n2.gridY);
+      
+      // Direct and diagonal neighbors
+      if ((dx <= 1 && dy <= 1) && (dx + dy > 0)) {
+        list.push({ i, j, delay: Math.random() * 1 });
+      }
+    }
+  }
+  return list;
+}
+
+function initGrid() {
+  gridDots = [];
+  const SPACING = 32;
+  for (let x = 0; x < W; x += SPACING) {
+    for (let y = 0; y < H; y += SPACING) {
+      gridDots.push({ x, y });
+    }
+  }
+}
+
+// ── Rendering ────────────────────────────────────────────
+function drawBg() {
+  const grd = ctx.createRadialGradient(W*0.5, H*0.4, 0, W*0.5, H*0.4, Math.max(W,H)*0.75);
+  grd.addColorStop(0, '#111820');
+  grd.addColorStop(0.6, '#0d1319');
+  grd.addColorStop(1, '#0a0f14');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawGrid() {
+  const glowRadius = 220;
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  gridDots.forEach(d => {
+    const dx = mouse.x - d.x;
+    const dy = mouse.y - d.y;
+    const distSq = dx*dx + dy*dy; // Use squared distance for speed
+    
+    if (distSq < glowRadius * glowRadius) {
+      const dist = Math.sqrt(distSq);
+      const f = 1 - dist / glowRadius;
+      ctx.globalAlpha = 0.08 + (f * 0.5);
+      const scale = 1 + (f * 0.8);
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, 0.8 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.globalAlpha = 0.05;
+      ctx.fillRect(d.x - 0.4, d.y - 0.4, 0.8, 0.8); // Fast Rect for distant dots
+    }
+  });
+  ctx.restore();
+}
+
+function drawEdges(elapsed) {
+  const appear = easeOut(map(elapsed, 0, 2, 0, 1));
+  const baseAlpha = appear;
+  if (baseAlpha <= 0) return;
+  
+  edges.forEach(e => {
+    const na = nodes[e.i], nb = nodes[e.j];
+    const a = baseAlpha * 0.25 * (1 - Math.abs(na.z - nb.z));
+    if (a <= 0.01) return;
+    
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.strokeStyle = '#89f7d1';
+    ctx.lineWidth = 1.5 * (1 - na.z); // Perspective line width
+    
+    // Smooth lines
+    ctx.beginPath();
+    ctx.moveTo(na.x, na.y);
+    ctx.lineTo(nb.x, nb.y);
+    ctx.stroke();
+    
+    ctx.restore();
+  });
+}
+
+function drawNodes(elapsed) {
+  const appear = easeOut(map(elapsed, 0, 1.8, 0, 1));
+  
+  nodes.forEach(n => {
+    const fx = Math.sin(elapsed * n.spd + n.phX) * n.amp;
+    const fy = Math.cos(elapsed * n.spd + n.phY) * n.amp;
+    
+    const dx = mouse.x - (n.x);
+    const dy = mouse.y - (n.y);
+    const distSq = dx*dx + dy*dy;
+    const repulsionRadius = 180;
+    let rx = 0, ry = 0;
+    
+    if (distSq < repulsionRadius * repulsionRadius) {
+      const dist = Math.sqrt(distSq);
+      const force = (1 - dist / repulsionRadius) * 35 * (1 - n.z);
+      rx = -(dx / dist) * force;
+      ry = -(dy / dist) * force;
+    }
+    
+    n.vx = lerp(n.vx, rx, 0.1);
+    n.vy = lerp(n.vy, ry, 0.1);
+
+    n.x = n.ox + fx + n.vx;
+    n.y = n.oy + fy + n.vy;
+
+    // Use pre-rendered sprite for high performance
+    const spriteIdx = Math.min(4, Math.floor(Math.abs(n.z - 0.3) * 12));
+    const sw = 100, sh = 100;
+    const dw = n.r * 2.5, dh = n.r * 2.5;
+    
+    ctx.save();
+    ctx.globalAlpha = appear * n.baseAlpha;
+    ctx.drawImage(
+      spriteCanvas, 
+      0, spriteIdx * 100 * dpr, sw * dpr, sh * dpr, 
+      n.x - dw/2, n.y - dh/2, dw, dh
+    );
+    ctx.restore();
+  });
+}
+
+// ── Scroll Engine ────────────────────────────────────────
+let scrollY = 0;
+let currentElapsed = 0;
+
+window.addEventListener('scroll', () => {
+  scrollY = window.scrollY;
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = scrollY / maxScroll;
+  currentElapsed = progress * TOTAL_DURATION;
+
+  // UI Text transitions
+  t1.style.opacity = map(currentElapsed, 0, 3, 1, 0);
+  t2.style.opacity = map(currentElapsed, 4, 7.5, 0, 1) * map(currentElapsed, 7.5, 9, 1, 0);
+  
+  // Final Text Reveal
+  const t3 = document.getElementById('t3');
+  t3.style.opacity = map(currentElapsed, 10, 12.5, 0, 1);
+
+  // Reveal Button at end
+  if (progress > 0.9) {
+    enterBtn.classList.add('visible');
+    scrollHint.style.opacity = '0';
+  } else {
+    enterBtn.classList.remove('visible');
+    scrollHint.style.opacity = '1';
+  }
+});
+
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+function loop() {
+  ctx.clearRect(0, 0, W, H);
+  drawBg();
+  drawGrid();
+  drawEdges(currentElapsed);
+  drawNodes(currentElapsed);
+  requestAnimationFrame(loop);
+}
+
+initNodes();
+edges = buildEdges();
+initGrid();
+loop();
+</script>
+</body>
+</html>

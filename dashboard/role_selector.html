@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>MedChain - Select Role</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#0a0f14",
+                        "primary-container": "#2ba281",
+                        "primary": "#6cdab6",
+                        "surface-container-highest": "#30353b",
+                        "on-secondary": "#00373a",
+                        "on-background": "#dee3ea",
+                        "on-secondary-container": "#006a6f",
+                        "surface-tint": "#6cdab6",
+                        "inverse-surface": "#dee3ea",
+                        "outline-variant": "#3d4944",
+                        "outline": "#87948d",
+                        "surface": "#0f1419",
+                        "surface-container-low": "#171c21",
+                        "tertiary-container": "#5f8bff",
+                        "background": "#0f1419",
+                        "tertiary-fixed-dim": "#b3c5ff",
+                        "on-primary-fixed-variant": "#00513e",
+                        "on-primary-fixed": "#002117",
+                        "secondary": "#dcfdff",
+                        "surface-bright": "#353a3f",
+                        "tertiary-fixed": "#dbe1ff",
+                        "secondary-container": "#00f1fd",
+                        "secondary-fixed-dim": "#00dce6",
+                        "error-container": "#93000a",
+                        "on-primary-container": "#003024",
+                        "on-tertiary-fixed-variant": "#003ea6",
+                        "inverse-primary": "#006c53",
+                        "on-surface-variant": "#bccac2",
+                        "surface-container": "#1b2025",
+                        "on-surface": "#dee3ea",
+                        "tertiary": "#b3c5ff",
+                        "on-secondary-fixed": "#002022",
+                        "on-tertiary-container": "#002468",
+                        "inverse-on-surface": "#2c3137",
+                        "secondary-fixed": "#6ff6ff",
+                        "primary-fixed": "#89f7d1",
+                        "surface-container-high": "#252a30",
+                        "on-tertiary": "#002a76",
+                        "on-secondary-fixed-variant": "#004f53",
+                        "surface-dim": "#0f1419",
+                        "primary-fixed-dim": "#6cdab6",
+                        "on-tertiary-fixed": "#00174a",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#30353b",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#00382a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "1rem",
+                        "xl": "4rem",
+                        "lg": "2.5rem",
+                        "md": "1.5rem",
+                        "unit": "4px",
+                        "xs": "0.5rem",
+                        "margin": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Epilogue"],
+                        "label-md": ["Manrope"],
+                        "display-2xl": ["Epilogue"],
+                        "body-lg": ["Manrope"],
+                        "headline-lg": ["Epilogue"],
+                        "body-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-2xl": ["72px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: linear-gradient(145deg, #1d232a 0%, #171c21 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05); /* Inner highlight for depth */
+        }
+
+        .crisp-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .brand-flow {
+            background: linear-gradient(135deg, #2ba281 0%, #6cdab6 100%);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #6cdab6 0%, #dcfdff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .ambient-shadow {
+            box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.5), 
+                        0 8px 32px 0 rgba(13, 147, 115, 0.1);
+        }
+        
+        /* 3D Hover Effects for Role Cards */
+        .role-card-wrapper {
+            perspective: 1000px;
+        }
+        .role-card {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            height: 100%;
+        }
+        .role-card:hover {
+            transform: translateY(-12px) rotateX(6deg) rotateY(2deg);
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.6),
+                        0 0 25px 0 rgba(108, 218, 182, 0.15);
+        }
+        .role-card-content {
+            transform: translateZ(30px);
+            transition: transform 0.3s ease;
+        }
+        .portal-button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 3px solid rgba(0, 0, 0, 0.3); /* The depth effect */
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .role-card:hover .portal-button {
+            background: var(--btn-color, #6cdab6);
+            color: #003024;
+            border-bottom-width: 0;
+            transform: translateY(3px) translateZ(50px);
+            box-shadow: 0 0 20px rgba(108, 218, 182, 0.3);
+        }
+    </style>
+    <link href="style.css" rel="stylesheet"/>
+</head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen font-body-md relative overflow-x-hidden">
+    <!-- Interactive Background Grid -->
+    <canvas id="gridCanvas" class="fixed inset-0 z-0 pointer-events-none"></canvas>
+
+
+
+    <!-- TopNavBar -->
+    <nav class="bg-white/10 dark:bg-slate-900/40 backdrop-blur-xl docked full-width top-0 sticky border-b border-white/10 shadow-[0_8px_32px_0_rgba(13,147,115,0.15)] flex justify-between items-center w-full px-8 py-4 max-w-full z-50">
+        <div class="flex items-center gap-xl">
+            <a href="index.html" class="text-2xl font-black tracking-tighter text-primary font-epilogue tracking-tight hover:opacity-80 transition-opacity">MedChain</a>
+        </div>
+        <div class="flex items-center gap-md">
+            <button class="text-on-surface-variant hover:text-primary transition-colors duration-300 scale-95 active:scale-90 transition-transform">
+                <span class="material-symbols-outlined">help</span>
+            </button>
+            <button class="text-on-surface-variant hover:text-primary transition-colors duration-300 scale-95 active:scale-90 transition-transform">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-8 py-xl flex flex-col gap-xl items-center justify-center min-h-[80vh]">
+        
+        <section class="flex flex-col items-center text-center gap-lg mt-xl mb-lg w-full">
+            <h1 class="font-display-2xl text-display-2xl text-on-surface">
+                Welcome to <span class="text-gradient">MedChain</span>
+            </h1>
+            <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                The decentralized network for medicine redistribution. Select your role to enter the ecosystem.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter w-full mt-xl">
+                
+                <!-- Hospital Card -->
+                <div class="role-card-wrapper w-full">
+                    <a href="hospital.html" class="role-card block glass-panel rounded-[2rem] p-xl crisp-border ambient-shadow flex flex-col items-center text-center gap-sm">
+                        <div class="role-card-content flex flex-col items-center gap-sm">
+                            <span class="material-symbols-outlined text-6xl text-primary mb-4" style="font-variation-settings: 'FILL' 1;">local_hospital</span>
+                            <h3 class="font-headline-lg text-2xl font-bold text-on-surface">Hospital / Pharmacy</h3>
+                            <p class="font-body-md text-on-surface-variant">Donate surplus inventory safely and efficiently.</p>
+                            <div class="portal-button w-full py-3 px-6 rounded-2xl font-label-md text-sm mt-6 flex items-center justify-center gap-2 group-hover:scale-105 transition-all" style="--btn-color: #6cdab6;">
+                                Enter Portal <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Clinic Card -->
+                <div class="role-card-wrapper w-full">
+                    <a href="find-medicines.html" class="role-card block glass-panel rounded-[2rem] p-xl crisp-border ambient-shadow flex flex-col items-center text-center gap-sm">
+                        <div class="role-card-content flex flex-col items-center gap-sm">
+                            <span class="material-symbols-outlined text-6xl text-secondary-container mb-4" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+                            <h3 class="font-headline-lg text-2xl font-bold text-on-surface">Clinic / PHC</h3>
+                            <p class="font-body-md text-on-surface-variant">Request critical medicines for patient care.</p>
+                            <div class="portal-button w-full py-3 px-6 rounded-2xl font-label-md text-sm mt-6 flex items-center justify-center gap-2 group-hover:scale-105 transition-all" style="--btn-color: #00f1fd;">
+                                Enter Portal <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Admin Card -->
+                <div class="role-card-wrapper w-full">
+                    <a href="admin.html" class="role-card block glass-panel rounded-[2rem] p-xl crisp-border ambient-shadow flex flex-col items-center text-center gap-sm">
+                        <div class="role-card-content flex flex-col items-center gap-sm">
+                            <span class="material-symbols-outlined text-6xl text-tertiary mb-4" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+                            <h3 class="font-headline-lg text-2xl font-bold text-on-surface">Admin</h3>
+                            <p class="font-body-md text-on-surface-variant">Oversee logistics, compliance, and network health.</p>
+                            <div class="portal-button w-full py-3 px-6 rounded-2xl font-label-md text-sm mt-6 flex items-center justify-center gap-2 group-hover:scale-105 transition-all" style="--btn-color: #b3c5ff;">
+                                Enter Portal <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+    <script src="app.js"></script>
+    <script>
+        // --- Interactive Dot Grid Background ---
+        const canvas = document.getElementById('gridCanvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        const DOT_SPACING = 32;
+        let gridDots = [];
+        let mouse = { x: -1000, y: -1000 };
+
+        function initGrid() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+            gridDots = [];
+            for (let x = 0; x < W; x += DOT_SPACING) {
+                for (let y = 0; y < H; y += DOT_SPACING) {
+                    gridDots.push({ x, y });
+                }
+            }
+        }
+
+        window.addEventListener('resize', initGrid);
+        window.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, W, H);
+            const glowRadius = 220;
+            
+            gridDots.forEach(d => {
+                const dx = mouse.x - d.x;
+                const dy = mouse.y - d.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                let alpha = 0.08;
+                let scale = 1;
+                
+                if (dist < glowRadius) {
+                    const factor = 1 - dist / glowRadius;
+                    alpha = 0.08 + (factor * 0.6);
+                    scale = 1 + (factor * 0.8);
+                }
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                if (dist < glowRadius * 0.6) {
+                    const glow = (1 - dist / (glowRadius * 0.6)) * 4;
+                    ctx.shadowColor = '#89f7d1';
+                    ctx.shadowBlur = glow;
+                }
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, 0.8 * scale, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.restore();
+            });
+            requestAnimationFrame(drawGrid);
+        }
+
+        initGrid();
+        drawGrid();
+
+        // Simple 3D Tilt effect
+        document.querySelectorAll('.role-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -10;
+                const rotateY = ((x - centerX) / centerX) * 10;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        });
+    </script>
+</body>
+</html>

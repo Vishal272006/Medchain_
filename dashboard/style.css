@@ -1,0 +1,125 @@
+/* Custom Styles for MedChain MPA */
+
+/* 3D Tilt Effect Utilities */
+.tilt-card {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+}
+
+.tilt-content {
+    transform: translateZ(30px);
+}
+
+.tilt-icon {
+    transform: translateZ(50px);
+}
+
+/* Ensure smooth transitions when not hovering */
+.tilt-card {
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+
+.tilt-card.reset {
+    transition: transform 0.5s ease-out, box-shadow 0.5s ease-out;
+    transform: perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1) !important;
+}
+
+/* Page Load Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-transition {
+    animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ==========================================================
+   UI SCALE & DENSITY ADJUSTMENTS
+   ========================================================== */
+
+/* 1. Global Scale: 
+   Reduce base font size aggressively from 14.5px to 12.5px.
+   This proportionally shrinks ALL Tailwind standard classes 
+   that use 'rem' (e.g. p-4, m-2, py-3, gap-4). */
+html {
+    font-size: 12.5px;
+}
+
+/* 2. Typography Scale: 
+   Aggressive reduction of the custom px-based font sizes. */
+.text-display-2xl { font-size: 44px !important; }
+.text-headline-xl { font-size: 32px !important; }
+.text-headline-lg { font-size: 22px !important; }
+.text-body-lg { font-size: 14px !important; }
+.text-body-md { font-size: 13px !important; }
+.text-label-md { font-size: 11px !important; }
+
+/* 3. Typography Density:
+   Reduce excessive bold weights slightly for a tighter, 
+   more professional SaaS feel. */
+.font-black { font-weight: 800 !important; }
+.font-bold { font-weight: 600 !important; }
+.font-semibold { font-weight: 500 !important; }
+
+/* 4. Global Fixed Spacing overrides:
+   Scale down the hardcoded 'px' spacing values from the config. */
+.gap-gutter { gap: 16px !important; }
+.px-margin { padding-left: 24px !important; padding-right: 24px !important; }
+.p-margin { padding: 24px !important; }
+.-mx-margin { margin-left: -24px !important; margin-right: -24px !important; }
+
+/* 5. Icons:
+   Scale down specific hardcoded px sizes used for material icons. */
+.text-\[16px\] { font-size: 12px !important; }
+.text-\[18px\] { font-size: 13px !important; }
+.text-\[20px\] { font-size: 15px !important; }
+.text-\[24px\] { font-size: 18px !important; }
+.text-\[32px\] { font-size: 22px !important; }
+.text-\[40px\] { font-size: 28px !important; }
+
+/* 6. Density Adjustments for Buttons/Inputs
+   Aggressive tightening for high-density SaaS tools. */
+.py-3 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.py-4 { padding-top: 0.6rem !important; padding-bottom: 0.6rem !important; }
+
+/* Role Switcher Styles */
+.role-menu {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform-origin: top right;
+}
+
+.role-menu.hidden {
+    display: none;
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+}
+
+.role-menu:not(.hidden) {
+    display: block;
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.role-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #dee3ea;
+    transition: background 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+}
+
+.role-menu-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #6cdab6;
+}
+
+.role-menu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 4px 0;
+}
