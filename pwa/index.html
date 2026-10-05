@@ -344,7 +344,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script>
-  const API = "http://localhost:8000";
+  const API = window.location.origin;
   let stream = null;
   let scanLoop = null;
 
@@ -477,11 +477,17 @@
       const sensorBlock = document.getElementById("sensorBlock");
       sensorBlock.style.display = "block";
       const clean = ss.transit_clean;
+      const readingRows = (ss.readings || []).map(reading => `
+        <div class="sensor-row"><span class="sk">${reading.temp_c ?? "—"} °C · ${reading.humidity_pct ?? "—"}% RH · ${reading.light_exposed ? "Light exposed" : "Dark"}</span><span class="sv ${reading.status === "BREACH" ? "breach" : "ok"}">${reading.status || "UNKNOWN"}</span></div>
+      `).join("");
       document.getElementById("sensorRows").innerHTML = `
         <div class="sensor-row"><span class="sk">Total readings</span><span class="sv">${ss.total_readings}</span></div>
         <div class="sensor-row"><span class="sk">Breach events</span><span class="sv ${ss.breach_count > 0 ? 'breach' : 'ok'}">${ss.breach_count}</span></div>
         <div class="sensor-row"><span class="sk">Transit status</span><span class="sv ${clean ? 'ok' : 'breach'}">${clean ? "CLEAN" : "COMPROMISED"}</span></div>
+        ${readingRows || `<div class="sensor-row"><span class="sk">ESP32 readings</span><span class="sv">Waiting for first reading</span></div>`}
       `;
+    } else {
+      document.getElementById("sensorBlock").style.display = "none";
     }
 
     const sigOk = data.signature_valid;

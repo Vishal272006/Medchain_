@@ -1,7 +1,7 @@
 // MedChain shared utilities
-const API = "http://localhost:8000";
+window.MEDCHAIN_API = window.location.origin;
 async function apiFetch(method, path, body) {
-  const r = await fetch(API + path, {
+    const r = await fetch(window.MEDCHAIN_API + path, {
     method,
     headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined

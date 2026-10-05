@@ -395,7 +395,7 @@
 
 
 <script>
-const API = "http://localhost:8000";
+const API = window.MEDCHAIN_API || window.location.origin;
 
 // Give IDs to the inputs by replacing name attributes with ids
 // Find submit button and wire it

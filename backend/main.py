@@ -4,19 +4,22 @@ import uuid, time, json, os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from pathlib import Path
 
 from backend.schema import create_batch_payload
 from backend.signer import sign_payload, generate_qr
 from backend.verifier import verify_payload
 from backend.database import surplus_db, requests_db, batches_db, sensor_logs_db
-import backend.serial_reader
+import backend.serial_reader as serial_reader
 import backend.disposal as disposal_module
 from backend.disposal import disposal_queue, disposal_certificates, INCINERATORS, schedule_pickup, mark_disposed, months_to_expiry, nearest_incinerator
 from backend.cert_generator import generate_disposal_certificate
 
 app = FastAPI(title="MedChain API", version="2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 class SurplusListing(BaseModel):
     sender_id: str; drug_name: str; quantity: int
@@ -40,6 +43,10 @@ class DisposedRequest(BaseModel):
 
 @app.get("/")
 def root():
+    return FileResponse(PROJECT_DIR / "dashboard" / "index.html")
+
+@app.get("/health")
+def health():
     return {"status": "MedChain API running", "version": "2.0"}
 
 @app.post("/surplus/list")
@@ -82,9 +89,24 @@ def create_batch(data: BatchCreate):
     if data.surplus_id in disposal_queue:
         del disposal_queue[data.surplus_id]
         surplus_db[data.surplus_id]["disposal_status"] = None
-    generate_qr(signed, output_path=f"backend/qr_{batch_id}.png")
+    qr_path = PROJECT_DIR / "backend" / f"qr_{batch_id}.png"
+    generate_qr(signed, output_path=str(qr_path))
     serial_reader.ACTIVE_BATCH_ID = batch_id
-    return {"batch_id": batch_id, "signed_payload": signed, "qr_saved_at": f"backend/qr_{batch_id}.png"}
+    return {
+        "batch_id": batch_id,
+        "signed_payload": signed,
+        "qr_url": f"/batch/{batch_id}/qr",
+        "qr_saved_at": str(qr_path.relative_to(PROJECT_DIR))
+    }
+
+@app.get("/batch/{batch_id}/qr")
+def get_batch_qr(batch_id: str):
+    if batch_id not in batches_db:
+        raise HTTPException(404, "Batch not found")
+    qr_path = PROJECT_DIR / "backend" / f"qr_{batch_id}.png"
+    if not qr_path.exists():
+        generate_qr(batches_db[batch_id], output_path=str(qr_path))
+    return FileResponse(qr_path, media_type="image/png", filename=f"MedChain_{batch_id}.png")
 
 @app.get("/batch/{batch_id}/sensor-log")
 def get_sensor_log(batch_id: str):
@@ -98,10 +120,15 @@ def verify_qr(data: VerifyRequest):
     except: raise HTTPException(400, "Invalid QR data")
     result = verify_payload(scanned)
     batch_id = scanned.get("batch_id")
-    if batch_id and batch_id in sensor_logs_db:
-        logs = sensor_logs_db[batch_id]
+    if result.get("signature_valid") and batch_id in batches_db:
+        logs = sensor_logs_db.get(batch_id, [])
         breach = sum(1 for l in logs if l.get("status") == "BREACH")
-        result["sensor_summary"] = {"total_readings": len(logs), "breach_count": breach, "transit_clean": breach == 0}
+        result["sensor_summary"] = {
+            "total_readings": len(logs),
+            "breach_count": breach,
+            "transit_clean": breach == 0,
+            "readings": logs[-20:]
+        }
     return result
 
 @app.get("/disposal/queue")
@@ -142,10 +169,10 @@ def get_certificate(cert_id: str):
 def download_certificate(cert_id: str):
     cert = disposal_certificates.get(cert_id)
     if not cert: raise HTTPException(404, "Certificate not found")
-    pdf_path = f"backend/certificates/{cert_id}.pdf"
+    pdf_path = PROJECT_DIR / "backend" / "certificates" / f"{cert_id}.pdf"
     if not os.path.exists(pdf_path):
-        generate_disposal_certificate(cert, pdf_path)
-    return FileResponse(path=pdf_path, media_type="application/pdf",
+        generate_disposal_certificate(cert, str(pdf_path))
+    return FileResponse(path=str(pdf_path), media_type="application/pdf",
                         filename=f"MedChain_Disposal_{cert_id}.pdf")
 
 @app.post("/disposal/run-watchdog")
@@ -181,10 +208,17 @@ def network_summary():
         "certificates":     len(disposal_certificates)
     }
 
+app.mount("/pwa", StaticFiles(directory=PROJECT_DIR / "pwa", html=True), name="pwa")
+app.mount("/", StaticFiles(directory=PROJECT_DIR / "dashboard", html=True), name="dashboard")
+
 @app.on_event("startup")
 def startup():
-    os.makedirs("backend/certificates", exist_ok=True)
-    try: serial_reader.start_serial_reader(port="COM9")
+    os.makedirs(PROJECT_DIR / "backend" / "certificates", exist_ok=True)
+    try:
+        if serial_reader.SERIAL_PORT:
+            serial_reader.start_serial_reader(port=serial_reader.SERIAL_PORT)
+        else:
+            print("Serial reader disabled; set MEDCHAIN_SERIAL_PORT to enable it")
     except Exception as e: print(f"Serial reader skipped: {e}")
     disposal_module.start_watchdog()
     print("MedChain v2.0 online")

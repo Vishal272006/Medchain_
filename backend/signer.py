@@ -27,15 +27,8 @@ def sign_payload(payload: dict) -> dict:
     return signed
 
 
-# Your ngrok dashboard URL — change this when you redeploy
-DASHBOARD_URL = "https://6f2a-1-YOUR-NGROK-URL.ngrok-free.app"
-
 def generate_qr(signed_payload: dict, output_path: str = "batch_qr.png"):
-    # Encode payload as URL — phone scans QR → browser opens → verify page loads
-    import urllib.parse
-    payload_str = json.dumps(signed_payload, sort_keys=True)
-    encoded = urllib.parse.quote(payload_str)
-    qr_data = f"{DASHBOARD_URL}/verify?data={encoded}"
+    qr_data = json.dumps(signed_payload, sort_keys=True, separators=(",", ":"))
 
     qr = qrcode.QRCode(
         version=None,
