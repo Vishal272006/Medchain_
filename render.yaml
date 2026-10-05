@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: medchain
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements-deploy.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: MEDCHAIN_SERIAL_PORT
+        value: ""
+      - key: MEDCHAIN_SIGNING_SECRET
+        generateValue: true
+      - key: MEDCHAIN_SENSOR_TOKEN
+        generateValue: true

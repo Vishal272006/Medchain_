@@ -4,10 +4,11 @@
 import hmac
 import hashlib
 import json
+import os
 import time
 
 
-SECRET_KEY = b"medchain-secret-change-in-production"
+SECRET_KEY = os.getenv("MEDCHAIN_SIGNING_SECRET", "medchain-secret-change-in-production").encode()
 
 
 def verify_payload(signed_payload: dict) -> dict:

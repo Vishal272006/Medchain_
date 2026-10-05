@@ -14,6 +14,23 @@ $env:MEDCHAIN_SERIAL_PORT = "COM3"
 
 Keep that terminal running. Open the website at <http://127.0.0.1:8000/>. The dashboard, API, and verifier are served by the same backend. API documentation is at <http://127.0.0.1:8000/docs>; the QR scanner is at <http://127.0.0.1:8000/pwa/>.
 
+## Deploy to Render
+
+Connect this GitHub repository in Render and create a Blueprint from `render.yaml`. It builds with the Linux runtime dependencies, serves the site and API over HTTPS, and generates separate signing and sensor-relay secrets. Keep both values private.
+
+The Render service cannot access the PC's COM3 port. After Render creates the service, copy its `MEDCHAIN_SENSOR_TOKEN` value privately and run this bridge on the PC connected to the ESP32. Replace the URL with the service's actual `https://<name>.onrender.com` address:
+
+```powershell
+$env:MEDCHAIN_API_URL = "https://<name>.onrender.com"
+$env:MEDCHAIN_SENSOR_TOKEN = "<copy privately from Render environment settings>"
+$env:MEDCHAIN_SERIAL_PORT = "COM3"
+.\.venv\Scripts\python.exe -m backend.serial_bridge
+```
+
+Close Arduino Serial Monitor/Plotter before starting the bridge; it needs exclusive access to COM3. The bridge polls the cloud for the active batch and forwards valid ESP32 readings through the token-protected sensor API. Create a batch in the deployed Admin page, then keep the bridge running while it is in transit.
+
+This Render configuration is for demos: application data is in memory and resets when the service restarts or sleeps, and the other dashboard write APIs are not authenticated. Do not use it for real medicine or patient records without adding persistent storage and user authorization.
+
 ## Connect the ESP32
 
 The backend defaults to `COM3` at `115200` baud. Close Arduino IDE's Serial Monitor and Serial Plotter before starting or connecting the backend; only one program can own the COM port. If the port is busy at startup, the backend retries every five seconds. To use another port, set `$env:MEDCHAIN_SERIAL_PORT` before starting Uvicorn.

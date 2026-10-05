@@ -5,11 +5,12 @@
 import hmac
 import hashlib
 import json
+import os
 import qrcode
 from backend.schema import create_batch_payload
 
 
-SECRET_KEY = b"medchain-secret-change-in-production"  # env variable in real deployment
+SECRET_KEY = os.getenv("MEDCHAIN_SIGNING_SECRET", "medchain-secret-change-in-production").encode()
 
 
 def sign_payload(payload: dict) -> dict:

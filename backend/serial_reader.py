@@ -23,6 +23,23 @@ def start_serial_reader(port: str = SERIAL_PORT):
     print(f"Serial reader started on {port}")
 
 
+def parse_sensor_reading(line: str):
+    try:
+        reading = json.loads(line)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(reading, dict) or reading.get("status") not in {"OK", "BREACH"}:
+        return None
+    return reading
+
+
+def record_sensor_reading(batch_id: str, reading: dict):
+    if reading.get("status") not in {"OK", "BREACH"}:
+        return False
+    sensor_logs_db.setdefault(batch_id, []).append(reading)
+    return True
+
+
 def _read_loop(port: str):
     global ACTIVE_BATCH_ID
     last_error = None
@@ -37,18 +54,13 @@ def _read_loop(port: str):
                     line = ser.readline().decode("utf-8", errors="ignore").strip()
                     if not line:
                         continue
-                    try:
-                        log_entry = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue
-                    if not isinstance(log_entry, dict) or log_entry.get("status") not in {"OK", "BREACH"}:
+                    log_entry = parse_sensor_reading(line)
+                    if log_entry is None:
                         continue
 
                     # Attach readings only while a batch is in transit.
                     if ACTIVE_BATCH_ID:
-                        if ACTIVE_BATCH_ID not in sensor_logs_db:
-                            sensor_logs_db[ACTIVE_BATCH_ID] = []
-                        sensor_logs_db[ACTIVE_BATCH_ID].append(log_entry)
+                        record_sensor_reading(ACTIVE_BATCH_ID, log_entry)
                         print(f"[LOG] Batch {ACTIVE_BATCH_ID} -> {log_entry['status']}")
         except serial.SerialException as e:
             if str(e) != last_error:

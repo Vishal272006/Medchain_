@@ -1,7 +1,7 @@
 # main.py — MedChain v2.0 Full Lifecycle
 
-import uuid, time, json, os
-from fastapi import FastAPI, HTTPException
+import uuid, time, json, os, hmac
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -34,6 +34,10 @@ class BatchCreate(BaseModel):
 
 class VerifyRequest(BaseModel):
     qr_data: str
+
+class SensorLog(BaseModel):
+    batch_id: str
+    reading: dict
 
 class PickupRequest(BaseModel):
     surplus_id: str
@@ -113,6 +117,29 @@ def get_sensor_log(batch_id: str):
     logs = sensor_logs_db.get(batch_id, [])
     breach = sum(1 for l in logs if l.get("status") == "BREACH")
     return {"batch_id": batch_id, "total_readings": len(logs), "breach_count": breach, "logs": logs}
+
+def require_sensor_token(token: str):
+    expected = os.getenv("MEDCHAIN_SENSOR_TOKEN", "")
+    if not expected:
+        raise HTTPException(503, "Sensor relay is not configured")
+    if not hmac.compare_digest(token, expected):
+        raise HTTPException(401, "Invalid sensor token")
+
+@app.get("/sensor/active-batch")
+def get_active_sensor_batch(x_sensor_token: str = Header(default="", alias="X-Sensor-Token")):
+    require_sensor_token(x_sensor_token)
+    return {"batch_id": serial_reader.ACTIVE_BATCH_ID}
+
+@app.post("/sensor/log")
+def receive_sensor_log(data: SensorLog, x_sensor_token: str = Header(default="", alias="X-Sensor-Token")):
+    require_sensor_token(x_sensor_token)
+    if data.batch_id not in batches_db:
+        raise HTTPException(404, "Batch not found")
+    if data.batch_id != serial_reader.ACTIVE_BATCH_ID:
+        raise HTTPException(409, "Batch is not active for sensor logging")
+    if not serial_reader.record_sensor_reading(data.batch_id, data.reading):
+        raise HTTPException(422, "Reading must have status OK or BREACH")
+    return {"accepted": True, "batch_id": data.batch_id}
 
 @app.post("/verify")
 def verify_qr(data: VerifyRequest):
