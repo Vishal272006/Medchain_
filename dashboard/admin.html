@@ -521,10 +521,11 @@ async function createBatch() {
         <div style="font-size:20px;font-weight:800;color:#6cdab6;margin-bottom:4px">${data.batch_id}</div>
         <div style="font-size:13px;color:#bccac2;margin-bottom:12px">${data.signed_payload?.drug_name} · ${data.signed_payload?.quantity} units</div>
         <img alt="Signed QR code for batch ${data.batch_id}" src="${API}${data.qr_url}" style="display:block;width:220px;height:220px;background:white;padding:8px;border-radius:8px;margin:12px 0">
-        <div style="font-size:11px;color:#87948d;margin-bottom:6px">SIGNED QR DATA</div>
+        <div style="font-size:12px;color:#bccac2;margin:0 0 12px">Scan to view shipment details and live ESP32 readings.</div>
+        <div style="font-size:11px;color:#87948d;margin-bottom:6px">SIGNED DATA FOR MANUAL VERIFICATION</div>
         <textarea id="generated-qr-data" readonly style="width:100%;background:#0a0f14;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-family:monospace;font-size:11px;color:#bccac2;min-height:80px;resize:none">${JSON.stringify(data.signed_payload).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</textarea>
-        <button onclick="copyQRData()" style="margin-top:8px;padding:6px 16px;background:transparent;border:1px solid rgba(108,218,182,0.4);color:#6cdab6;border-radius:8px;font-size:12px;cursor:pointer">Copy QR data</button>
-        <a href="/pwa/" target="_blank" rel="noopener" style="margin:8px 0 0 10px;display:inline-block;color:#6cdab6;font-size:12px">Open verifier</a>
+        <button onclick="copyQRData()" style="margin-top:8px;padding:6px 16px;background:transparent;border:1px solid rgba(108,218,182,0.4);color:#6cdab6;border-radius:8px;font-size:12px;cursor:pointer">Copy signed data</button>
+        <a href="${data.view_url}" target="_blank" rel="noopener" style="margin:8px 0 0 10px;display:inline-block;color:#6cdab6;font-size:12px">Open live batch view</a>
       </div>`;
     }
     await loadAll();
@@ -537,7 +538,7 @@ async function copyQRData() {
   const raw = document.getElementById("generated-qr-data")?.value;
   if (!raw) return;
   await navigator.clipboard.writeText(raw);
-  showAdminAlert("ok", "Signed QR data copied");
+  showAdminAlert("ok", "Signed manual-verification data copied");
 }
 
 async function verifyQR() {

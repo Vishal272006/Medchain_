@@ -5,7 +5,7 @@ import time
 import threading
 import hashlib
 from datetime import datetime
-from backend.database import surplus_db
+from backend.database import surplus_db, disposal_queue, disposal_certificates, save_state
 
 # ── CPCB Licensed Facilities — Tamil Nadu ─────────────────────────────────────
 INCINERATORS = [
@@ -14,11 +14,6 @@ INCINERATORS = [
     {"id":"CBMWTF_TN_003","name":"Tamil Nadu Waste Management Ltd","location":"Gummidipoondi, Chennai","pincode":"601201","contact":"044-27929292","status":"ACTIVE"},
     {"id":"CBMWTF_TN_004","name":"Aseptic System Bio Medical Waste","location":"Ambattur, Chennai","pincode":"600053","contact":"044-26581234","status":"ACTIVE"}
 ]
-
-# ── In-memory stores ───────────────────────────────────────────────────────────
-disposal_queue        = {}   # surplus_id → disposal record
-disposal_certificates = {}   # cert_id    → certificate record
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -80,6 +75,7 @@ def run_watchdog():
                 flagged += 1
                 print(f"[WATCHDOG] Flagged {surplus.get('drug_name')} ({surplus_id}) → {facility['name']}")
 
+            save_state()
         print(f"[WATCHDOG] Scan complete — {flagged} new batch(es) flagged")
         time.sleep(3600)  # Every hour; change to 86400 for daily in production
 
@@ -126,6 +122,7 @@ def schedule_pickup(surplus_id: str) -> dict:
     disposal_queue[surplus_id]["certificate_id"]   = cert_id
     disposal_queue[surplus_id]["status"]           = "PICKUP_SCHEDULED"
 
+    save_state()
     print(f"[DISPOSAL] Certificate {cert_id} issued for {record['drug_name']}")
     return certificate
 
@@ -140,4 +137,5 @@ def mark_disposed(surplus_id: str) -> dict:
     if cert_id and cert_id in disposal_certificates:
         disposal_certificates[cert_id]["status"] = "COMPLETED"
     surplus_db[surplus_id]["disposal_status"] = "DISPOSED"
+    save_state()
     return {"message": "Marked as disposed", "certificate_id": cert_id}

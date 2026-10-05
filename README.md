@@ -7,7 +7,7 @@ Use Python 3.11 and run these commands in PowerShell from the repository root:
 ```powershell
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install fastapi uvicorn "qrcode[pil]" pyserial reportlab
+.\.venv\Scripts\python.exe -m pip install fastapi uvicorn "qrcode[pil]" pyserial reportlab SQLAlchemy "psycopg[binary]"
 $env:MEDCHAIN_SERIAL_PORT = "COM3"
 .\.venv\Scripts\python.exe -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
@@ -29,7 +29,9 @@ $env:MEDCHAIN_SERIAL_PORT = "COM3"
 
 Close Arduino Serial Monitor/Plotter before starting the bridge; it needs exclusive access to COM3. The bridge polls the cloud for the active batch and forwards valid ESP32 readings through the token-protected sensor API. Create a batch in the deployed Admin page, then keep the bridge running while it is in transit.
 
-This Render configuration is for demos: application data is in memory and resets when the service restarts or sleeps, and the other dashboard write APIs are not authenticated. Do not use it for real medicine or patient records without adding persistent storage and user authorization.
+Local runs save application state to `backend/medchain.sqlite3`. For Render, set a `DATABASE_URL` environment variable to a hosted PostgreSQL connection string; a free-tier provider such as Supabase can avoid buying Render storage, subject to that provider's current quotas and terms. Add the variable under the service's **Environment** settings and redeploy. The app creates its state table on startup. Keep the connection string private. Data created before connecting the database will not be migrated automatically.
+
+This prototype's dashboard write APIs are not authenticated. Do not use it for real medicine or patient records without adding persistent user authorization and security controls.
 
 ## Connect the ESP32
 

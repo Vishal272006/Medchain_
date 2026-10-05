@@ -6,11 +6,11 @@ import json
 import os
 import threading
 import time
-from backend.database import sensor_logs_db
+from backend.database import sensor_logs_db, runtime_state, save_state
 
 SERIAL_PORT = os.getenv("MEDCHAIN_SERIAL_PORT", "COM3").strip()
 BAUD_RATE   = 115200
-ACTIVE_BATCH_ID = None      # Set this when a batch is in transit
+ACTIVE_BATCH_ID = runtime_state.get("active_batch_id")
 
 
 def start_serial_reader(port: str = SERIAL_PORT):
@@ -37,6 +37,7 @@ def record_sensor_reading(batch_id: str, reading: dict):
     if reading.get("status") not in {"OK", "BREACH"}:
         return False
     sensor_logs_db.setdefault(batch_id, []).append(reading)
+    save_state()
     return True
 
 

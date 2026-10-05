@@ -299,6 +299,7 @@
 </header>
 
 <main>
+  <section id="scannerTools">
   <div class="scanner-box">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="canvas"></canvas>
@@ -321,6 +322,7 @@
 
   <textarea id="manualInput" placeholder='Paste raw JSON from QR here...'></textarea>
   <button class="btn" onclick="verifyManual()">Verify Pasted Data</button>
+  </section>
 
   <div id="result">
     <div class="verdict-banner" id="verdictBanner">
@@ -339,6 +341,7 @@
     </div>
 
     <p class="status-line" id="sigStatus"></p>
+    <p class="status-line" id="batchRefreshStatus" hidden></p>
   </div>
 </main>
 
@@ -399,6 +402,13 @@
   }
 
   async function callVerify(qrData) {
+    try {
+      const scannedUrl = new URL(qrData);
+      if (scannedUrl.origin === window.location.origin && scannedUrl.searchParams.has("batch_id")) {
+        window.location.assign(scannedUrl.href);
+        return;
+      }
+    } catch {}
     setStatus("Contacting MedChain server...");
     try {
       const res = await fetch(`${API}/verify`, {
@@ -463,13 +473,14 @@
       ["Quantity",    data.quantity   ? `${data.quantity} units` : "—"],
       ["Sender",      data.sender     || "—"],
       ["Receiver",    data.receiver   || "—"],
-      ["Expires in",  data.days_to_expiry_approx != null ? `~${data.days_to_expiry_approx} days` : "—"]
+      ["Expires",     data.expiry_date || (data.days_to_expiry_approx != null ? `~${data.days_to_expiry_approx} days` : "—")],
+      ["Storage",     data.storage_type || "—"]
     ];
 
     document.getElementById("infoGrid").innerHTML = fields.map(([l, v]) => `
       <div class="info-cell">
-        <div class="label">${l}</div>
-        <div class="value">${v}</div>
+        <div class="label">${escapeHtml(l)}</div>
+        <div class="value">${escapeHtml(v)}</div>
       </div>`).join("");
 
     const ss = data.sensor_summary;
@@ -477,14 +488,22 @@
       const sensorBlock = document.getElementById("sensorBlock");
       sensorBlock.style.display = "block";
       const clean = ss.transit_clean;
-      const readingRows = (ss.readings || []).map(reading => `
-        <div class="sensor-row"><span class="sk">${reading.temp_c ?? "—"} °C · ${reading.humidity_pct ?? "—"}% RH · ${reading.light_exposed ? "Light exposed" : "Dark"}</span><span class="sv ${reading.status === "BREACH" ? "breach" : "ok"}">${reading.status || "UNKNOWN"}</span></div>
+      const readings = ss.readings || [];
+      const latest = readings[readings.length - 1];
+      const hasReadings = readings.length > 0;
+      const transitStatus = !hasReadings ? "AWAITING DATA" : clean ? "CLEAN" : "COMPROMISED";
+      const readingRows = readings.slice(-5).reverse().map(reading => `
+        <div class="sensor-row"><span class="sk">${escapeHtml(reading.temp_c ?? "—")} °C · ${escapeHtml(reading.humidity_pct ?? "—")}% RH · ${reading.light_exposed ? "Light exposed" : "Dark"}</span><span class="sv ${reading.status === "BREACH" ? "breach" : "ok"}">${escapeHtml(reading.status || "UNKNOWN")}</span></div>
       `).join("");
       document.getElementById("sensorRows").innerHTML = `
-        <div class="sensor-row"><span class="sk">Total readings</span><span class="sv">${ss.total_readings}</span></div>
-        <div class="sensor-row"><span class="sk">Breach events</span><span class="sv ${ss.breach_count > 0 ? 'breach' : 'ok'}">${ss.breach_count}</span></div>
-        <div class="sensor-row"><span class="sk">Transit status</span><span class="sv ${clean ? 'ok' : 'breach'}">${clean ? "CLEAN" : "COMPROMISED"}</span></div>
-        ${readingRows || `<div class="sensor-row"><span class="sk">ESP32 readings</span><span class="sv">Waiting for first reading</span></div>`}
+        <div class="sensor-row"><span class="sk">Latest temperature</span><span class="sv">${latest ? `${escapeHtml(latest.temp_c ?? "—")} °C` : "Waiting for reading"}</span></div>
+        <div class="sensor-row"><span class="sk">Latest humidity</span><span class="sv">${latest ? `${escapeHtml(latest.humidity_pct ?? "—")}% RH` : "—"}</span></div>
+        <div class="sensor-row"><span class="sk">Light exposure</span><span class="sv">${latest ? (latest.light_exposed ? "Exposed" : "Protected") : "—"}</span></div>
+        <div class="sensor-row"><span class="sk">Latest sensor status</span><span class="sv ${latest?.status === "BREACH" ? "breach" : "ok"}">${latest ? escapeHtml(latest.status || "UNKNOWN") : "No readings yet"}</span></div>
+        <div class="sensor-row"><span class="sk">Total readings</span><span class="sv">${Number(ss.total_readings) || 0}</span></div>
+        <div class="sensor-row"><span class="sk">Breach events</span><span class="sv ${ss.breach_count > 0 ? 'breach' : 'ok'}">${Number(ss.breach_count) || 0}</span></div>
+        <div class="sensor-row"><span class="sk">Transit status</span><span class="sv ${!hasReadings ? 'warn' : clean ? 'ok' : 'breach'}">${transitStatus}</span></div>
+        ${readingRows ? `<div class="sensor-row"><span class="sk">Recent readings</span><span class="sv">Last ${readingRows.length ? Math.min(readings.length, 5) : 0}</span></div>${readingRows}` : ""}
       `;
     } else {
       document.getElementById("sensorBlock").style.display = "none";
@@ -505,6 +524,34 @@
 
   function setStatus(msg) {
     document.getElementById("status-msg").textContent = msg;
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, character => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[character]);
+  }
+
+  const batchId = new URLSearchParams(window.location.search).get("batch_id");
+  if (batchId) {
+    document.getElementById("scannerTools").hidden = true;
+    document.getElementById("result").style.display = "block";
+    const refreshStatus = document.getElementById("batchRefreshStatus");
+    refreshStatus.hidden = false;
+    refreshBatchView();
+    window.setInterval(refreshBatchView, 5000);
+  }
+
+  async function refreshBatchView() {
+    const refreshStatus = document.getElementById("batchRefreshStatus");
+    try {
+      const response = await fetch(`${API}/batch/${encodeURIComponent(batchId)}/details`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Batch unavailable (${response.status})`);
+      showResult(await response.json());
+      refreshStatus.textContent = `Live updates · refreshed ${new Date().toLocaleTimeString()}`;
+    } catch (error) {
+      refreshStatus.textContent = error.message || "Unable to load live batch data";
+    }
   }
 </script>
 </body>

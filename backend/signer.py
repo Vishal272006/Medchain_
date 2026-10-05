@@ -28,8 +28,9 @@ def sign_payload(payload: dict) -> dict:
     return signed
 
 
-def generate_qr(signed_payload: dict, output_path: str = "batch_qr.png"):
-    qr_data = json.dumps(signed_payload, sort_keys=True, separators=(",", ":"))
+def generate_qr(signed_payload: dict, output_path: str = "batch_qr.png", qr_data: str = None):
+    if qr_data is None:
+        qr_data = json.dumps(signed_payload, sort_keys=True, separators=(",", ":"))
 
     qr = qrcode.QRCode(
         version=None,

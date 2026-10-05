@@ -3,3 +3,5 @@ uvicorn[standard]
 qrcode[pil]
 pyserial
 reportlab
+SQLAlchemy
+psycopg[binary]

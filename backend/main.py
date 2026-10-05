@@ -1,7 +1,7 @@
 # main.py — MedChain v2.0 Full Lifecycle
 
 import uuid, time, json, os, hmac
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,7 +11,7 @@ from pathlib import Path
 from backend.schema import create_batch_payload
 from backend.signer import sign_payload, generate_qr
 from backend.verifier import verify_payload
-from backend.database import surplus_db, requests_db, batches_db, sensor_logs_db
+from backend.database import surplus_db, requests_db, batches_db, sensor_logs_db, runtime_state, save_state
 import backend.serial_reader as serial_reader
 import backend.disposal as disposal_module
 from backend.disposal import disposal_queue, disposal_certificates, INCINERATORS, schedule_pickup, mark_disposed, months_to_expiry, nearest_incinerator
@@ -59,6 +59,7 @@ def list_surplus(data: SurplusListing):
     months = months_to_expiry(data.expiry_date)
     surplus_db[sid] = {**data.dict(), "surplus_id": sid, "listed_at": int(time.time()),
                        "matched": False, "disposal_status": "DISPOSAL_PENDING" if months <= 1 else None}
+    save_state()
     return {"surplus_id": sid, "message": "Surplus listed", "months_to_expiry": months}
 
 @app.get("/surplus/all")
@@ -69,6 +70,7 @@ def get_all_surplus():
 def clinic_request(data: ClinicRequest):
     rid = str(uuid.uuid4())[:8].upper()
     requests_db[rid] = {**data.dict(), "request_id": rid, "requested_at": int(time.time()), "fulfilled": False}
+    save_state()
     return {"request_id": rid, "message": "Request submitted"}
 
 @app.get("/clinic/requests")
@@ -76,15 +78,15 @@ def get_all_requests():
     return list(requests_db.values())
 
 @app.post("/batch/create")
-def create_batch(data: BatchCreate):
+def create_batch(data: BatchCreate, request: Request):
     surplus = surplus_db.get(data.surplus_id)
-    request = requests_db.get(data.request_id)
+    clinic_request = requests_db.get(data.request_id)
     if not surplus: raise HTTPException(404, "Surplus not found")
-    if not request: raise HTTPException(404, "Request not found")
+    if not clinic_request: raise HTTPException(404, "Request not found")
     if surplus["matched"]: raise HTTPException(400, "Already matched")
-    payload  = create_batch_payload(drug_name=surplus["drug_name"], quantity=min(surplus["quantity"], request["quantity_needed"]),
+    payload  = create_batch_payload(drug_name=surplus["drug_name"], quantity=min(surplus["quantity"], clinic_request["quantity_needed"]),
                                     expiry_date=surplus["expiry_date"], sender_id=surplus["sender_id"],
-                                    receiver_id=request["receiver_id"], storage_type=surplus["storage_type"])
+                                    receiver_id=clinic_request["receiver_id"], storage_type=surplus["storage_type"])
     signed   = sign_payload(payload)
     batch_id = signed["batch_id"]
     batches_db[batch_id] = signed
@@ -94,23 +96,47 @@ def create_batch(data: BatchCreate):
         del disposal_queue[data.surplus_id]
         surplus_db[data.surplus_id]["disposal_status"] = None
     qr_path = PROJECT_DIR / "backend" / f"qr_{batch_id}.png"
-    generate_qr(signed, output_path=str(qr_path))
+    view_url = f"{str(request.base_url).rstrip('/')}/pwa/?batch_id={batch_id}"
+    generate_qr(signed, output_path=str(qr_path), qr_data=view_url)
     serial_reader.ACTIVE_BATCH_ID = batch_id
+    runtime_state["active_batch_id"] = batch_id
+    save_state()
     return {
         "batch_id": batch_id,
         "signed_payload": signed,
+        "view_url": view_url,
         "qr_url": f"/batch/{batch_id}/qr",
         "qr_saved_at": str(qr_path.relative_to(PROJECT_DIR))
     }
 
 @app.get("/batch/{batch_id}/qr")
-def get_batch_qr(batch_id: str):
+def get_batch_qr(batch_id: str, request: Request):
     if batch_id not in batches_db:
         raise HTTPException(404, "Batch not found")
     qr_path = PROJECT_DIR / "backend" / f"qr_{batch_id}.png"
     if not qr_path.exists():
-        generate_qr(batches_db[batch_id], output_path=str(qr_path))
+        view_url = f"{str(request.base_url).rstrip('/')}/pwa/?batch_id={batch_id}"
+        generate_qr(batches_db[batch_id], output_path=str(qr_path), qr_data=view_url)
     return FileResponse(qr_path, media_type="image/png", filename=f"MedChain_{batch_id}.png")
+
+@app.get("/batch/{batch_id}/details")
+def get_batch_details(batch_id: str):
+    signed_payload = batches_db.get(batch_id)
+    if not signed_payload:
+        raise HTTPException(404, "Batch not found")
+    result = verify_payload(signed_payload)
+    result["expiry_date"] = signed_payload.get("expiry_date")
+    result["storage_type"] = signed_payload.get("storage_type")
+    if result.get("signature_valid"):
+        logs = sensor_logs_db.get(batch_id, [])
+        breach = sum(1 for log in logs if log.get("status") == "BREACH")
+        result["sensor_summary"] = {
+            "total_readings": len(logs),
+            "breach_count": breach,
+            "transit_clean": breach == 0,
+            "readings": logs[-20:]
+        }
+    return result
 
 @app.get("/batch/{batch_id}/sensor-log")
 def get_sensor_log(batch_id: str):
@@ -221,6 +247,7 @@ def trigger_watchdog():
             }
             surplus_db[surplus_id]["disposal_status"] = "DISPOSAL_PENDING"
             flagged += 1
+            save_state()
     return {"flagged": flagged, "message": f"{flagged} batch(es) flagged"}
 
 @app.get("/network/summary")
